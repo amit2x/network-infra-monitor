@@ -64,15 +64,29 @@
                         <!-- Right Side - Login Form -->
                         <div class="col-lg-6">
                             <div class="login-form-wrapper">
+                                <!--<div class="login-header text-center mb-4">-->
+                                <!--    <div class="d-lg-none mb-3">-->
+                                <!--        <div class="logo-circle-small">-->
+                                <!--            <i class="fas fa-network-wired"></i>-->
+                                <!--        </div>-->
+                                <!--    </div>-->
+                                <!--    <h3 class="fw-bold text-gray-900 mb-2">Welcome Back!</h3>-->
+                                <!--    <p class="text-muted">Sign in to your account to continue</p>-->
+                                <!--</div>-->
+                                
                                 <div class="login-header text-center mb-4">
-                                    <div class="d-lg-none mb-3">
-                                        <div class="logo-circle-small">
-                                            <i class="fas fa-network-wired"></i>
-                                        </div>
-                                    </div>
-                                    <h3 class="fw-bold text-gray-900 mb-2">Welcome Back!</h3>
-                                    <p class="text-muted">Sign in to your account to continue</p>
-                                </div>
+    <!-- Updated logo section -->
+    <div class="mb-3">
+        <div class="logo-container">
+            <!-- Replace 'your-logo-url.png' with your actual image path -->
+            <img src="{{ asset('logo.png')}}" alt="NMS Logo" class="img-fluid" style="max-height: 60px;">
+        </div>
+    </div>
+    
+    <h3 class="fw-bold text-gray-900 mb-2">Welcome Back!</h3>
+    <p class="text-muted">Sign in to your account to continue</p>
+</div>
+
 
                                 <!-- Session Status -->
                                 @if (session('status'))

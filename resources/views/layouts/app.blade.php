@@ -153,12 +153,34 @@
     <div class="wrapper">
         <!-- Sidebar -->
         <nav id="sidebar" class="sidebar bg-dark">
-            <div class="sidebar-header p-3">
-                <h3 class="text-white mb-0">
-                    <i class="fas fa-network-wired me-2"></i>
-                    NetMonitor
-                </h3>
-            </div>
+            <!--<div class="sidebar-header p-3">-->
+            <!--    <h3 class="text-white mb-0">-->
+            <!--        <i class="fas fa-network-wired me-2"></i>-->
+            <!--        NetMonitor-->
+            <!--    </h3>-->
+            <!--</div>-->
+            
+            <div class="sidebar-header border-bottom">
+    @php
+        // Check if the file exists in your public folder
+        $logoPath = 'logo_dashboard.png';
+        $fullPath = public_path($logoPath);
+    @endphp
+
+    @if(file_exists($fullPath))
+        {{-- Full width image, no padding --}}
+        <img src="{{ asset($logoPath) }}" class="img-fluid d-block w-100" style="max-height: 100px;" alt="NetMonitor">
+    @else
+        {{-- Fallback with padding for text alignment --}}
+        <div class="p-3">
+            <h3 class="text-white mb-0">
+                <i class="fas fa-network-wired me-2"></i>
+                NetMonitor
+            </h3>
+        </div>
+    @endif
+</div>
+
 
             <ul class="list-unstyled components">
                 <li class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -194,6 +216,27 @@
                 <li class="{{ request()->routeIs('monitoring.*') ? 'active' : '' }}">
                     <a href="{{ route('monitoring.logs') }}" class="text-white text-decoration-none px-3 py-2 d-block">
                         <i class="fas fa-chart-line me-2"></i> Monitoring
+                    </a>
+                </li>
+                
+                <li class="{{ request()->routeIs('topology.*') ? 'active' : '' }}">
+                    <a href="{{ route('topology.index') }}" class="text-white text-decoration-none px-3 py-2 d-block">
+                        <i class="fas fa-project-diagram me-2"></i> Topology
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('racks.*') ? 'active' : '' }}">
+                    <a href="{{ route('racks.index') }}" class="text-white text-decoration-none px-3 py-2 d-block">
+                        <i class="fas fa-server me-2"></i> Rack View
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('bandwidth.*') ? 'active' : '' }}">
+                    <a href="{{ route('bandwidth.dashboard') }}" class="text-white text-decoration-none px-3 py-2 d-block">
+                        <i class="fas fa-chart-area me-2"></i> Bandwidth
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('mib-browser.*') ? 'active' : '' }}">
+                    <a href="{{ route('mib-browser.index') }}" class="text-white text-decoration-none px-3 py-2 d-block">
+                        <i class="fas fa-search me-2"></i> MIB Browser
                     </a>
                 </li>
 

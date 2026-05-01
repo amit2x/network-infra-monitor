@@ -12,6 +12,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BandwidthController;
+use App\Http\Controllers\MIBBrowserController;
+use App\Http\Controllers\TopologyController;
+use App\Http\Controllers\RackController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -125,3 +129,44 @@ Route::middleware(['auth'])->prefix('api/snmp')->name('api.snmp.')->group(functi
     Route::post('/discover', [SNMPController::class, 'discover'])->name('discover');
     Route::post('/monitoring/run', [SNMPController::class, 'runMonitoring'])->name('monitoring.run');
 });
+
+
+
+// Rack Visualization Routes
+Route::middleware(['auth'])->prefix('racks')->name('racks.')->group(function () {
+    Route::get('/', [RackController::class, 'index'])->name('index');
+    Route::get('/create', [RackController::class, 'create'])->name('create');
+    Route::post('/', [RackController::class, 'store'])->name('store');
+    Route::get('/{rack}', [RackController::class, 'show'])->name('show');
+    Route::get('/{rack}/edit', [RackController::class, 'edit'])->name('edit');
+    Route::put('/{rack}', [RackController::class, 'update'])->name('update');
+    Route::delete('/{rack}', [RackController::class, 'destroy'])->name('destroy');
+    Route::post('/{rack}/devices/{device}/add', [RackController::class, 'addDevice'])->name('add-device');
+    Route::delete('/{rack}/devices/{device}/remove', [RackController::class, 'removeDevice'])->name('remove-device');
+    Route::get('/{rack}/layout', [RackController::class, 'layout'])->name('layout');
+});
+
+// Topology Routes
+Route::middleware(['auth'])->prefix('topology')->name('topology.')->group(function () {
+    Route::get('/', [TopologyController::class, 'index'])->name('index');
+    Route::get('/data', [TopologyController::class, 'data'])->name('data');
+    Route::post('/devices/{device}/discover', [TopologyController::class, 'discover'])->name('discover');
+    Route::post('/discover-all', [TopologyController::class, 'discoverAll'])->name('discover-all');
+});
+
+// Bandwidth Monitoring Routes
+Route::middleware(['auth'])->prefix('bandwidth')->name('bandwidth.')->group(function () {
+    Route::get('/', [BandwidthController::class, 'dashboard'])->name('dashboard');
+    Route::get('/devices/{device}/port', [BandwidthController::class, 'getPortBandwidth'])->name('port');
+    Route::post('/devices/{device}/collect', [BandwidthController::class, 'collectNow'])->name('collect');
+    Route::post('/collect-all', [BandwidthController::class, 'collectAll'])->name('collect-all');
+});
+
+// MIB Browser Routes
+Route::middleware(['auth'])->prefix('mib-browser')->name('mib-browser.')->group(function () {
+    Route::get('/', [MIBBrowserController::class, 'index'])->name('index');
+    Route::get('/devices/{device}/get', [MIBBrowserController::class, 'get'])->name('get');
+    Route::get('/devices/{device}/walk', [MIBBrowserController::class, 'walk'])->name('walk');
+});
+
+

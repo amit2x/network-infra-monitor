@@ -6,12 +6,24 @@ return [
     | Default SNMP Settings
     |--------------------------------------------------------------------------
     */
+    
     'defaults' => [
         'version' => env('SNMP_VERSION', '2c'),
         'community' => env('SNMP_COMMUNITY', 'public'),
-        'timeout' => env('SNMP_TIMEOUT', 1), // seconds
+        'timeout' => env('SNMP_TIMEOUT', 1),
         'retries' => env('SNMP_RETRIES', 2),
         'port' => env('SNMP_PORT', 161),
+        
+        // SNMP v3 defaults
+        'v3' => [
+            'security_level' => 'authPriv',
+            'auth_protocol' => 'SHA',
+            'auth_password' => '',
+            'priv_protocol' => 'AES',
+            'priv_password' => '',
+            'context_name' => '',
+            'context_engine_id' => '',
+        ],
     ],
 
     /*

@@ -586,4 +586,93 @@ class SNMPService
     {
         $this->closeSessions();
     }
+    
+    /**
+     * Create SNMP v3 session
+     */
+    protected function createV3Session(string $host, array $v3Config, int $timeout)
+    {
+        // PHP SNMP v3 requires specific session configuration
+        $session = new \SNMP(
+            \SNMP::VERSION_3,
+            $host,
+            $v3Config['auth_username'] ?? '',
+            $timeout * 1000000,
+            $this->config['defaults']['retries']
+        );
+    
+        $securityLevel = $v3Config['security_level'] ?? 'authPriv';
+        
+        // Set security parameters based on level
+        switch ($securityLevel) {
+            case 'authPriv':
+                $session->setSecurity(
+                    'authPriv',
+                    $v3Config['auth_protocol'] ?? 'SHA',
+                    $v3Config['auth_password'] ?? '',
+                    $v3Config['priv_protocol'] ?? 'AES',
+                    $v3Config['priv_password'] ?? '',
+                    '',
+                    ''
+                );
+                break;
+            case 'authNoPriv':
+                $session->setSecurity(
+                    'authNoPriv',
+                    $v3Config['auth_protocol'] ?? 'SHA',
+                    $v3Config['auth_password'] ?? '',
+                    '',
+                    '',
+                    '',
+                    ''
+                );
+                break;
+            case 'noAuthNoPriv':
+                $session->setSecurity(
+                    'noAuthNoPriv',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    ''
+                );
+                break;
+        }
+    
+        $session->valueretrieval = SNMP_VALUE_PLAIN;
+        $session->quick_print = true;
+    
+        return $session;
+    }
+    
+    /**
+     * Get SNMP value with v3 support
+     */
+    public function getV3(string $host, string $oid, array $v3Config, int $timeout = null): string|false
+    {
+        if (!$this->isAvailable()) {
+            return false;
+        }
+    
+        $timeout = $timeout ?? $this->config['defaults']['timeout'];
+    
+        try {
+            $session = $this->createV3Session($host, $v3Config, $timeout);
+            $result = $session->get($oid);
+            $session->close();
+            
+            if ($result !== false) {
+                $this->metrics['successful_queries']++;
+            } else {
+                $this->metrics['failed_queries']++;
+            }
+            
+            return $result;
+        } catch (\Exception $e) {
+            $this->metrics['failed_queries']++;
+            Log::warning("SNMP v3 get failed for {$host} OID {$oid}: " . $e->getMessage());
+            return false;
+        }
+    }
 }

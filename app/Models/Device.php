@@ -39,7 +39,18 @@ class Device extends Model
         'snmp_timeout',
         'snmp_polling_enabled',
         'snmp_polling_interval',
+        //v3
+            'snmp_v3_security_level',
+            'snmp_v3_auth_protocol',
+            'snmp_v3_auth_username',
+            'snmp_v3_auth_password',
+            'snmp_v3_priv_protocol',
+            'snmp_v3_priv_password',
+            'snmp_v3_context_name',
     ];
+    
+    
+ 
 
     protected $casts = [
         'is_critical' => 'boolean',
@@ -55,6 +66,9 @@ class Device extends Model
         'snmp_port' => 'integer',
         'snmp_timeout' => 'integer',
         'snmp_polling_interval' => 'integer',
+        
+        'snmp_v3_auth_password' => 'encrypted',
+        'snmp_v3_priv_password' => 'encrypted',
     ];
 
     // Relationships
@@ -177,6 +191,22 @@ class Device extends Model
         return round($this->snmpData()
             ->where('collected_at', '>=', now()->subHours($hours))
             ->avg('memory_usage') ?? 0, 2);
+    }
+    
+    /**
+     * Get SNMP v3 configuration array
+     */
+    public function getSnmpV3ConfigAttribute(): array
+    {
+        return [
+            'security_level' => $this->snmp_v3_security_level ?? 'authPriv',
+            'auth_protocol' => $this->snmp_v3_auth_protocol ?? 'SHA',
+            'auth_username' => $this->snmp_v3_auth_username ?? '',
+            'auth_password' => $this->snmp_v3_auth_password ?? '',
+            'priv_protocol' => $this->snmp_v3_priv_protocol ?? 'AES',
+            'priv_password' => $this->snmp_v3_priv_password ?? '',
+            'context_name' => $this->snmp_v3_context_name ?? '',
+        ];
     }
 
 }
