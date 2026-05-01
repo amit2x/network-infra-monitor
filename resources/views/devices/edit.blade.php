@@ -194,6 +194,103 @@
                         </div>
                     </div>
                 </div>
+                
+                
+                <!-- SNMP Configuration Card (Add after Lifecycle card) -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-project-diagram me-2"></i>SNMP Configuration
+                        </h6>
+                        <div>
+                            <span class="badge bg-{{ $device->snmp_enabled ? 'success' : 'secondary' }} me-2">
+                                {{ $device->snmp_enabled ? 'Enabled' : 'Disabled' }}
+                            </span>
+                            @if($device->snmp_enabled)
+                            <button type="button" class="btn btn-sm btn-info" onclick="testSNMP()">
+                                <i class="fas fa-vial me-1"></i> Test Connection
+                            </button>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="snmp_enabled" 
+                                           name="snmp_enabled" value="1" 
+                                           {{ old('snmp_enabled', $device->snmp_enabled) ? 'checked' : '' }}
+                                           onchange="toggleSNMPSettings()">
+                                    <label class="form-check-label fw-bold" for="snmp_enabled">
+                                        Enable SNMP Monitoring
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="snmp_polling_enabled" 
+                                           name="snmp_polling_enabled" value="1"
+                                           {{ old('snmp_polling_enabled', $device->snmp_polling_enabled) ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-bold" for="snmp_polling_enabled">
+                                        Enable Auto Polling
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div id="snmpSettings" style="{{ old('snmp_enabled', $device->snmp_enabled) ? '' : 'display:none;' }}">
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="snmp_community" class="form-label">SNMP Community String</label>
+                                    <input type="text" name="snmp_community" id="snmp_community" 
+                                           class="form-control" placeholder="public"
+                                           value="{{ old('snmp_community', $device->snmp_community) }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="snmp_version" class="form-label">SNMP Version</label>
+                                    <select name="snmp_version" id="snmp_version" class="form-select">
+                                        <option value="1" {{ old('snmp_version', $device->snmp_version) == '1' ? 'selected' : '' }}>v1</option>
+                                        <option value="2c" {{ old('snmp_version', $device->snmp_version) == '2c' ? 'selected' : '' }}>v2c</option>
+                                        <option value="3" {{ old('snmp_version', $device->snmp_version) == '3' ? 'selected' : '' }}>v3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="snmp_port" class="form-label">SNMP Port</label>
+                                    <input type="number" name="snmp_port" id="snmp_port" 
+                                           class="form-control" min="1" max="65535"
+                                           value="{{ old('snmp_port', $device->snmp_port) }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="snmp_timeout" class="form-label">Timeout (seconds)</label>
+                                    <input type="number" name="snmp_timeout" id="snmp_timeout" 
+                                           class="form-control" min="1" max="10"
+                                           value="{{ old('snmp_timeout', $device->snmp_timeout) }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="snmp_polling_interval" class="form-label">Polling Interval</label>
+                                    <select name="snmp_polling_interval" id="snmp_polling_interval" class="form-select">
+                                        <option value="60" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 60 ? 'selected' : '' }}>Every 1 min (Critical)</option>
+                                        <option value="300" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 300 ? 'selected' : '' }}>Every 5 min (Normal)</option>
+                                        <option value="900" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 900 ? 'selected' : '' }}>Every 15 min (Low)</option>
+                                        <option value="1800" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 1800 ? 'selected' : '' }}>Every 30 min</option>
+                                        <option value="3600" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 3600 ? 'selected' : '' }}>Every 1 hour</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3 d-flex align-items-end">
+                                    <div id="snmpStatus" class="w-100">
+                                        @if($device->snmp_enabled)
+                                            <span class="badge bg-warning text-dark">Not Tested Recently</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
                 <!-- Remarks -->
                 <div class="card shadow mb-4">
@@ -252,4 +349,151 @@
         </div>
     </form>
 </div>
+<!-- SNMP Configuration Card (Add after Lifecycle card) -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-project-diagram me-2"></i>SNMP Configuration
+        </h6>
+        <div>
+            <span class="badge bg-{{ $device->snmp_enabled ? 'success' : 'secondary' }} me-2">
+                {{ $device->snmp_enabled ? 'Enabled' : 'Disabled' }}
+            </span>
+            @if($device->snmp_enabled)
+            <button type="button" class="btn btn-sm btn-info" onclick="testSNMP()">
+                <i class="fas fa-vial me-1"></i> Test Connection
+            </button>
+            @endif
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="snmp_enabled" 
+                           name="snmp_enabled" value="1" 
+                           {{ old('snmp_enabled', $device->snmp_enabled) ? 'checked' : '' }}
+                           onchange="toggleSNMPSettings()">
+                    <label class="form-check-label fw-bold" for="snmp_enabled">
+                        Enable SNMP Monitoring
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="snmp_polling_enabled" 
+                           name="snmp_polling_enabled" value="1"
+                           {{ old('snmp_polling_enabled', $device->snmp_polling_enabled) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-bold" for="snmp_polling_enabled">
+                        Enable Auto Polling
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="snmpSettings" style="{{ old('snmp_enabled', $device->snmp_enabled) ? '' : 'display:none;' }}">
+            <hr>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="snmp_community" class="form-label">SNMP Community String</label>
+                    <input type="text" name="snmp_community" id="snmp_community" 
+                           class="form-control" placeholder="public"
+                           value="{{ old('snmp_community', $device->snmp_community) }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="snmp_version" class="form-label">SNMP Version</label>
+                    <select name="snmp_version" id="snmp_version" class="form-select">
+                        <option value="1" {{ old('snmp_version', $device->snmp_version) == '1' ? 'selected' : '' }}>v1</option>
+                        <option value="2c" {{ old('snmp_version', $device->snmp_version) == '2c' ? 'selected' : '' }}>v2c</option>
+                        <option value="3" {{ old('snmp_version', $device->snmp_version) == '3' ? 'selected' : '' }}>v3</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="snmp_port" class="form-label">SNMP Port</label>
+                    <input type="number" name="snmp_port" id="snmp_port" 
+                           class="form-control" min="1" max="65535"
+                           value="{{ old('snmp_port', $device->snmp_port) }}">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="snmp_timeout" class="form-label">Timeout (seconds)</label>
+                    <input type="number" name="snmp_timeout" id="snmp_timeout" 
+                           class="form-control" min="1" max="10"
+                           value="{{ old('snmp_timeout', $device->snmp_timeout) }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="snmp_polling_interval" class="form-label">Polling Interval</label>
+                    <select name="snmp_polling_interval" id="snmp_polling_interval" class="form-select">
+                        <option value="60" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 60 ? 'selected' : '' }}>Every 1 min (Critical)</option>
+                        <option value="300" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 300 ? 'selected' : '' }}>Every 5 min (Normal)</option>
+                        <option value="900" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 900 ? 'selected' : '' }}>Every 15 min (Low)</option>
+                        <option value="1800" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 1800 ? 'selected' : '' }}>Every 30 min</option>
+                        <option value="3600" {{ old('snmp_polling_interval', $device->snmp_polling_interval) == 3600 ? 'selected' : '' }}>Every 1 hour</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3 d-flex align-items-end">
+                    <div id="snmpStatus" class="w-100">
+                        @if($device->snmp_enabled)
+                            <span class="badge bg-warning text-dark">Not Tested Recently</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function toggleSNMPSettings() {
+        if ($('#snmp_enabled').is(':checked')) {
+            $('#snmpSettings').slideDown();
+        } else {
+            $('#snmpSettings').slideUp();
+        }
+    }
+
+    function testSNMP() {
+        const deviceId = {{ $device->id }};
+        const statusEl = $('#snmpStatus');
+        
+        statusEl.html('<span class="badge bg-info"><i class="fas fa-spinner fa-spin me-1"></i> Testing...</span>');
+
+        $.ajax({
+            url: `/snmp/devices/${deviceId}/test`,
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    statusEl.html('<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Connected</span>');
+                    Swal.fire({
+                        title: 'SNMP Connection Successful!',
+                        html: `
+                            <div class="text-start">
+                                <p><strong>Device:</strong> ${response.data.name || 'N/A'}</p>
+                                <p><strong>Description:</strong> ${response.data.description || 'N/A'}</p>
+                                <p><strong>Uptime:</strong> ${response.data.uptime || 'N/A'}</p>
+                            </div>
+                        `,
+                        icon: 'success'
+                    });
+                } else {
+                    statusEl.html('<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Failed</span>');
+                    Swal.fire('Connection Failed', response.message || 'Check SNMP settings', 'error');
+                }
+            },
+            error: function(xhr) {
+                statusEl.html('<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Error</span>');
+                Swal.fire('Error', xhr.responseJSON?.message || 'Connection test failed', 'error');
+            }
+        });
+    }
+</script>
+@endpush
 @endsection
+
+

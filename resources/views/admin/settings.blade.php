@@ -117,6 +117,37 @@
                             <i class="fas fa-info-circle me-2"></i>
                             Email settings can be modified in the <code>.env</code> file
                         </div>
+                        
+                        <!-- SNMP Settings Section -->
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="fas fa-project-diagram me-2"></i>SNMP Default Settings
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="snmp_community" class="form-label">Default Community String</label>
+                                        <input type="text" name="snmp_community" id="snmp_community" 
+                                               class="form-control" value="{{ config('snmp.defaults.community', 'public') }}">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="snmp_timeout" class="form-label">Default Timeout (seconds)</label>
+                                        <input type="number" name="snmp_timeout" id="snmp_timeout" 
+                                               class="form-control" min="1" max="10" 
+                                               value="{{ config('snmp.defaults.timeout', 1) }}">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="snmp_retries" class="form-label">Default Retries</label>
+                                        <input type="number" name="snmp_retries" id="snmp_retries" 
+                                               class="form-control" min="0" max="5" 
+                                               value="{{ config('snmp.defaults.retries', 2) }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
 
                         <div class="d-flex justify-content-end mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
@@ -127,6 +158,7 @@
                 </div>
             </div>
         </div>
+
 
         <div class="col-lg-4">
             <!-- System Info Card -->
@@ -162,6 +194,7 @@
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
 </div>

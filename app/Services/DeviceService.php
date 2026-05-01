@@ -15,13 +15,23 @@ class DeviceService
         DB::beginTransaction();
         try {
             $data['device_code'] = $this->generateDeviceCode($data['type']);
+            
+            // Set SNMP defaults if enabled
+            if (isset($data['snmp_enabled']) && $data['snmp_enabled']) {
+                $data['snmp_port'] = $data['snmp_port'] ?? 161;
+                $data['snmp_timeout'] = $data['snmp_timeout'] ?? 1;
+                $data['snmp_version'] = $data['snmp_version'] ?? '2c';
+                $data['snmp_community'] = $data['snmp_community'] ?? config('snmp.defaults.community', 'public');
+                $data['snmp_polling_interval'] = $data['snmp_polling_interval'] ?? 300;
+            }
+            
             $device = Device::create($data);
-
+            
             // Create default ports if type is switch
             if ($data['type'] === 'switch') {
                 $this->createDefaultPorts($device, $data['port_count'] ?? 24);
             }
-
+            
             DB::commit();
             return $device;
         } catch (\Exception $e) {

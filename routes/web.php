@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\SNMPController;
 use App\Http\Controllers\PortController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\AlertController;
@@ -82,6 +83,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/monitoring/stats', [MonitoringController::class, 'stats'])->name('monitoring.stats');
     Route::post('/monitoring/run', [MonitoringController::class, 'runMonitoring'])->name('monitoring.run');
     Route::get('/monitoring/export', [MonitoringController::class, 'export'])->name('monitoring.export');
+    
+    // SNMP Monitoring
+    Route::prefix('snmp')->name('snmp.')->group(function () {
+        Route::get('/dashboard', [SNMPController::class, 'dashboard'])->name('dashboard');
+        Route::post('/devices/{device}/test', [SNMPController::class, 'testConnection'])->name('test');
+        Route::get('/devices/{device}/performance', [SNMPController::class, 'performanceView'])->name('performance');
+        Route::get('/devices/{device}/interfaces', [SNMPController::class, 'interfacesView'])->name('interfaces');
+        Route::post('/discover', [SNMPController::class, 'discover'])->name('discover');
+    });
+    
 });
 
 // Admin routes
@@ -106,4 +117,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/audit')->name('admin.au
 });
 
 
-
+// API Routes for SNMP
+Route::middleware(['auth'])->prefix('api/snmp')->name('api.snmp.')->group(function () {
+    Route::get('/devices/{device}/performance', [SNMPController::class, 'performance'])->name('performance');
+    Route::get('/devices/{device}/interfaces', [SNMPController::class, 'interfaces'])->name('interfaces');
+    Route::post('/devices/{device}/test', [SNMPController::class, 'testConnection'])->name('test');
+    Route::post('/discover', [SNMPController::class, 'discover'])->name('discover');
+    Route::post('/monitoring/run', [SNMPController::class, 'runMonitoring'])->name('monitoring.run');
+});

@@ -138,3 +138,33 @@ Schedule::command('cache:clear')
 //     ->everyMinute()
 //     ->withoutOverlapping()
 //     ->runInBackground();
+
+
+// SNMP Monitoring
+Schedule::command('snmp:monitor --critical-only --batch-size=5')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/snmp-critical.log'));
+
+Schedule::command('snmp:monitor --batch-size=10')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/snmp-full.log'));
+    
+    // SNMP Monitoring Schedules
+Schedule::command('snmp:monitor --critical-only --batch-size=5')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/snmp-critical.log'));
+
+Schedule::command('snmp:monitor --batch-size=10')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/snmp-full.log'));
+
+// SNMP Data Cleanup
+Schedule::command('snmp:clean-data --days=30')
+    ->dailyAt('02:00')
+    ->appendOutputTo(storage_path('logs/snmp-cleanup.log'));
