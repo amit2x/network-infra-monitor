@@ -266,7 +266,7 @@
 
         // Function to load Google Maps script
         function loadGoogleMapsScript() {
-            const apiKey = '{{ config("services.google_maps.api_key", "AIzaSyCFF7jVShzevQigbcn0r4PlVO4is419SB8") }}';
+            const apiKey = '{{ config("services.google_maps.api_key") }}';
 
             if (!apiKey || apiKey === 'YOUR_API_KEY') {
                 showMapError('Google Maps API key not configured');

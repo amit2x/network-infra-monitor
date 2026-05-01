@@ -113,6 +113,25 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Notification styles */
+        .notification-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .notification-item:hover {
+            background-color: #f8f9fc;
+        }
+        
+        .notification-item.unread {
+            background-color: #e8f4fd;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .notification-item.unread:hover {
+            background-color: #dceefb;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 margin-left: -250px;
@@ -163,7 +182,7 @@
                 <li class="{{ request()->routeIs('alerts.*') ? 'active' : '' }}">
                     <a href="{{ route('alerts.index') }}" class="text-white text-decoration-none px-3 py-2 d-block">
                         <i class="fas fa-bell me-2"></i> Alerts
-                        <span class="badge bg-danger float-end" id="alert-count">0</span>
+                        <span class="badge bg-danger float-end" id="alert-count-badge" style="display: none;">0</span>
                     </a>
                 </li>
 
@@ -192,9 +211,26 @@
 
                 @can('manage users')
                 <li class="{{ request()->routeIs('admin.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.users.index') }}" class="text-white text-decoration-none px-3 py-2 d-block">
+                    <a href="#adminSubmenu" data-bs-toggle="collapse" class="text-white text-decoration-none px-3 py-2 d-block dropdown-toggle">
                         <i class="fas fa-users-cog me-2"></i> Administration
                     </a>
+                    <ul class="collapse list-unstyled {{ request()->routeIs('admin.*') ? 'show' : '' }}" id="adminSubmenu">
+                        <li>
+                            <a href="{{ route('admin.users.index') }}" class="text-white-50 text-decoration-none px-5 py-2 d-block">
+                                <i class="fas fa-users me-2"></i> Users
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.audit.index') }}" class="text-white-50 text-decoration-none px-5 py-2 d-block">
+                                <i class="fas fa-history me-2"></i> Audit Trail
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.settings') }}" class="text-white-50 text-decoration-none px-5 py-2 d-block">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 @endcan
             </ul>
@@ -212,16 +248,31 @@
                     <div class="ms-auto d-flex align-items-center">
                         <!-- Notification Dropdown -->
                         <div class="dropdown me-3">
-                            <button class="btn btn-light position-relative dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-light position-relative dropdown-toggle" type="button" 
+                                    id="notificationDropdown" data-bs-toggle="dropdown" 
+                                    aria-expanded="false" onclick="loadNotifications()">
                                 <i class="fas fa-bell"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="unread-alerts">0</span>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                      id="unread-alerts" style="display: none;">0</span>
                             </button>
-                            <div class="dropdown-menu dropdown-menu-end shadow" style="width: 350px;">
-                                <div class="p-3 border-bottom">
+                            <div class="dropdown-menu dropdown-menu-end shadow" 
+                                 style="width: 350px;" aria-labelledby="notificationDropdown">
+                                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">Notifications</h6>
+                                    <a href="{{ route('alerts.index') }}" class="small text-decoration-none">View All</a>
                                 </div>
-                                <div id="notification-list" style="max-height: 300px; overflow-y: auto;">
-                                    <div class="text-center p-3">Loading...</div>
+                                <div id="notification-list" style="max-height: 350px; overflow-y: auto;">
+                                    <div class="text-center p-4" id="notification-loading">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="text-muted small mt-2 mb-0">Loading notifications...</p>
+                                    </div>
+                                    <div id="notification-items"></div>
+                                    <div class="text-center p-3" id="notification-empty" style="display: none;">
+                                        <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                                        <p class="text-muted small mb-0">No new notifications</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -255,20 +306,21 @@
             <main class="py-4 px-4">
                 @if (session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
+                        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
                 @if (session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
+                        <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
                 @if ($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:</h6>
                         <ul class="mb-0">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -284,10 +336,11 @@
     </div>
     @else
     <!-- Guest View for Login/Register -->
-    <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="min-vh-100">
         @yield('content')
     </div>
-    @endauth
+@endauth
+    
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -299,33 +352,175 @@
 
     <script>
         window.alertsCountUrl = '{{ route("alerts.unread-count") }}';
+        window.alertsListUrl = '{{ route("alerts.index") }}';
+        window.alertsResolveUrl = '{{ route("alerts.resolve", ["alert" => "__ID__"]) }}';
 
         $(document).ready(function() {
+            // Sidebar toggle
             $('#sidebarCollapse').on('click', function() {
                 $('#sidebar').toggleClass('active');
                 $('#content').toggleClass('active');
             });
 
+            // Load initial data
             loadAlertCount();
+            
+            // Refresh alert count every 30 seconds
             setInterval(loadAlertCount, 30000);
 
-            function loadAlertCount() {
-                $.get(window.alertsCountUrl || '/alerts/count/unread', function(data) {
-                    $('#unread-alerts').text(data.count);
-                    if (data.count > 0) {
-                        $('#unread-alerts').show();
-                    } else {
-                        $('#unread-alerts').hide();
-                    }
-                }).fail(function() {
-                    console.error('Failed to load alerts count');
-                });
-            }
-
+            // Auto-hide alerts after 5 seconds
             setTimeout(function() {
                 $('.alert-dismissible').fadeOut('slow');
             }, 5000);
         });
+
+        // Load alert count for badge
+        function loadAlertCount() {
+            $.get(window.alertsCountUrl, function(data) {
+                const badge = $('#unread-alerts');
+                const sidebarBadge = $('#alert-count-badge');
+                
+                if (data.count > 0) {
+                    badge.text(data.count).show();
+                    sidebarBadge.text(data.count).show();
+                } else {
+                    badge.hide();
+                    sidebarBadge.hide();
+                }
+            }).fail(function() {
+                console.error('Failed to load alerts count');
+            });
+        }
+
+        // Load notifications into dropdown
+        function loadNotifications() {
+            const loadingEl = $('#notification-loading');
+            const itemsEl = $('#notification-items');
+            const emptyEl = $('#notification-empty');
+            
+            // Show loading, hide items
+            loadingEl.show();
+            itemsEl.html('');
+            emptyEl.hide();
+            
+            $.ajax({
+                url: window.alertsListUrl,
+                data: {
+                    per_page: 10,
+                    resolved: 0 // Only show unresolved
+                },
+                success: function(response) {
+                    loadingEl.hide();
+                    
+                    // Check if we have alerts from HTML response
+                    // Since we're using blade views, we need to parse or use API
+                    // Let's use a different approach - fetch recent unresolved alerts
+                    fetchRecentAlerts();
+                },
+                error: function() {
+                    loadingEl.hide();
+                    itemsEl.html(`
+                        <div class="text-center p-3 text-danger">
+                            <i class="fas fa-exclamation-circle mb-2"></i>
+                            <p class="small mb-0">Failed to load notifications</p>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        // Fetch recent unresolved alerts
+        function fetchRecentAlerts() {
+            const itemsEl = $('#notification-items');
+            const emptyEl = $('#notification-empty');
+            
+            // Get alerts from the alerts page data
+            $.ajax({
+                url: window.alertsListUrl + '?resolved=0&per_page=10',
+                method: 'GET',
+                success: function(html) {
+                    // Parse the HTML to extract alert rows
+                    const tempDiv = $('<div>').html(html);
+                    const alertRows = tempDiv.find('tbody tr');
+                    
+                    if (alertRows.length === 0) {
+                        emptyEl.show();
+                        return;
+                    }
+                    
+                    let notificationHtml = '';
+                    let count = 0;
+                    
+                    alertRows.each(function() {
+                        if (count >= 5) return false; // Show max 5
+                        
+                        const row = $(this);
+                        const severity = row.find('.badge:first').text().trim();
+                        const title = row.find('a').text().trim();
+                        const time = row.find('td:eq(3)').text().trim();
+                        const isResolved = row.find('.badge.bg-success').length > 0;
+                        const alertId = row.find('.alert-checkbox').val();
+                        
+                        const severityClass = severity.toLowerCase().includes('critical') ? 'danger' :
+                                            severity.toLowerCase().includes('high') ? 'warning' : 'info';
+                        
+                        notificationHtml += `
+                            <div class="notification-item p-3 border-bottom ${isResolved ? '' : 'unread'}" 
+                                 onclick="window.location.href='/alerts/${alertId}'">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1 small fw-bold text-dark">${title}</p>
+                                        <small class="text-muted">
+                                            <span class="badge bg-${severityClass} me-1" style="font-size: 0.65rem;">${severity}</span>
+                                            ${time}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-${isResolved ? 'success' : 'warning'} rounded-pill" 
+                                              style="font-size: 0.6rem;">
+                                            ${isResolved ? 'Resolved' : 'Pending'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        count++;
+                    });
+                    
+                    if (notificationHtml) {
+                        itemsEl.html(notificationHtml);
+                    } else {
+                        emptyEl.show();
+                    }
+                },
+                error: function() {
+                    // Fallback: create notification items from global state
+                    itemsEl.html(`
+                        <a href="${window.alertsListUrl}" class="dropdown-item text-center text-primary">
+                            <i class="fas fa-external-link-alt me-1"></i> View All Alerts
+                        </a>
+                    `);
+                }
+            });
+        }
+
+        // Resolve alert from notification
+        function resolveAlertFromNotification(alertId) {
+            const url = window.alertsResolveUrl.replace('__ID__', alertId);
+            $.post(url, {
+                _token: '{{ csrf_token() }}'
+            }, function(response) {
+                Swal.fire({
+                    title: 'Resolved!',
+                    text: 'Alert has been resolved.',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                loadNotifications();
+                loadAlertCount();
+            });
+        }
     </script>
 
     @stack('scripts')

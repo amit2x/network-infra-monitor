@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\PortController;
@@ -27,11 +28,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');
 
-    // Profile
+    // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
     Route::get('/profile/activity', [ProfileController::class, 'activity'])->name('profile.activity');
+    Route::post('/profile/clear-activity', [ProfileController::class, 'clearActivity'])->name('profile.clear-activity');
+
 
     // Device Management (Full CRUD)
     Route::resource('devices', DeviceController::class);
@@ -63,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/alerts/bulk-resolve', [AlertController::class, 'bulkResolve'])->name('alerts.bulk-resolve');
     Route::get('/alerts/count/unread', [AlertController::class, 'getUnreadCount'])->name('alerts.unread-count');
     Route::delete('/alerts/{alert}', [AlertController::class, 'destroy'])->name('alerts.destroy');
+    Route::get('/alerts/notifications', [AlertController::class, 'getNotifications'])->name('alerts.notifications');
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
@@ -92,4 +96,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/settings/system-info', [SettingsController::class, 'systemInfo'])->name('settings.system-info');
     Route::post('/settings/clear-cache', [SettingsController::class, 'clearCache'])->name('settings.clear-cache');
 });
+
+// Admin Audit Routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin/audit')->name('admin.audit.')->group(function () {
+    Route::get('/', [AuditController::class, 'index'])->name('index');
+    Route::get('/{activity}', [AuditController::class, 'show'])->name('show');
+    Route::get('/export', [AuditController::class, 'export'])->name('export');
+    Route::post('/clean', [AuditController::class, 'clean'])->name('clean');
+});
+
+
 

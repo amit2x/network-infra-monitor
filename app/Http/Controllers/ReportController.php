@@ -81,7 +81,8 @@ class ReportController extends Controller
             }
         }
 
-        $daysFilter = $request->filled('days') ? $request->days : 90;
+        // $daysFilter = $request->filled('days') ? (int) $request->days : 90;
+        $daysFilter = (int) $request->input('days', 90);
 
         $query->where(function($q) use ($daysFilter) {
             $q->whereBetween('warranty_expiry', [now(), now()->addDays($daysFilter)])

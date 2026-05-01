@@ -21,6 +21,10 @@ return [
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],
+    
+    'google_maps'=>[
+        'api_key'=>env('google_maps_api_key')
+    ],
 
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
